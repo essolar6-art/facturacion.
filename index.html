@@ -1,0 +1,1154 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HC Eléctricos & Comunicaciones - Sistema de Cotizaciones</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+        }
+        .gradient-bg {
+            background: linear-gradient(135deg, #f97316 0%, #ea580c 50%, #0ea5e9 100%);
+        }
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+        .input-focus:focus {
+            box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.3);
+            border-color: #f97316;
+        }
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        .animate-slide-in {
+            animation: slideIn 0.5s ease-out;
+        }
+        .tab-active {
+            border-bottom: 3px solid #f97316;
+            color: #ea580c;
+        }
+        .category-badge {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        }
+        .electric-badge {
+            background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+        }
+        .comm-badge {
+            background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+        }
+        .security-badge {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        }
+        .imou-badge {
+            background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+        }
+        .logo-container {
+            background: white;
+            border-radius: 12px;
+            padding: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .total-highlight {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            border: 2px solid #f59e0b;
+        }
+        .editable-price {
+            background-color: #fef3c7;
+            border: 1px solid #f59e0b;
+            font-weight: 600;
+            color: #92400e;
+        }
+        .editable-price:focus {
+            background-color: #fff;
+            box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.3);
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+
+    <!-- Header -->
+    <header class="gradient-bg text-white shadow-2xl sticky top-0 z-50">
+        <div class="container mx-auto px-6 py-4">
+            <div class="flex justify-between items-center">
+                <div class="flex items-center space-x-4">
+                    <div class="logo-container flex items-center justify-center" style="min-width: 140px;">
+                        <img src="/mnt/kimi/upload/103683233_2605804502968241_8798075721470125210_n.jpg" 
+                             alt="HC Eléctricos & Comunicaciones Logo" 
+                             class="h-16 w-auto object-contain"
+                             onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+                        <div class="hidden flex-col items-center">
+                            <div class="w-16 h-16 rounded-full bg-gradient-to-br from-orange-500 to-blue-500 flex items-center justify-center text-white font-bold text-2xl relative">
+                                <span class="absolute left-3">H</span>
+                                <i class="fas fa-bolt text-yellow-300 text-xl"></i>
+                                <span class="absolute right-3">C</span>
+                            </div>
+                            <span class="text-xs font-bold mt-1">ELÉCTRICOS &<br>COMUNICACIONES</span>
+                        </div>
+                    </div>
+                    <div>
+                        <h1 class="text-2xl font-bold tracking-tight">HC Eléctricos & Comunicaciones</h1>
+                        <p class="text-orange-100 text-sm">Sistema de Cotizaciones Profesional</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <button onclick="showSection('dashboard')" class="px-4 py-2 rounded-lg bg-white/10 hover:bg-white/20 transition flex items-center space-x-2">
+                        <i class="fas fa-home"></i>
+                        <span class="hidden md:inline">Inicio</span>
+                    </button>
+                    <button onclick="showSection('history')" class="px-4 py-2 rounded-lg bg-white/10 hover:bg-white/20 transition flex items-center space-x-2">
+                        <i class="fas fa-history"></i>
+                        <span class="hidden md:inline">Historial</span>
+                    </button>
+                    <div class="bg-white/20 px-4 py-2 rounded-lg backdrop-blur-sm flex items-center space-x-2">
+                        <i class="fas fa-calendar-alt"></i>
+                        <span id="currentDate"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-6 py-8">
+        
+        <!-- Dashboard Section -->
+        <div id="dashboard-section" class="animate-slide-in">
+            <!-- Stats Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                <div class="bg-white rounded-2xl p-6 shadow-lg card-hover border-l-4 border-orange-500">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-gray-500 text-sm font-medium">Cotizaciones Hoy</p>
+                            <h3 class="text-3xl font-bold text-gray-800 mt-2" id="stats-today">0</h3>
+                        </div>
+                        <div class="bg-orange-100 p-3 rounded-lg">
+                            <i class="fas fa-file-invoice text-orange-600 text-xl"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white rounded-2xl p-6 shadow-lg card-hover border-l-4 border-green-500">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-gray-500 text-sm font-medium">Total Mes (COP)</p>
+                            <h3 class="text-3xl font-bold text-gray-800 mt-2" id="stats-month">$0</h3>
+                        </div>
+                        <div class="bg-green-100 p-3 rounded-lg">
+                            <i class="fas fa-dollar-sign text-green-600 text-xl"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white rounded-2xl p-6 shadow-lg card-hover border-l-4 border-blue-500">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-gray-500 text-sm font-medium">Clientes Activos</p>
+                            <h3 class="text-3xl font-bold text-gray-800 mt-2" id="stats-clients">0</h3>
+                        </div>
+                        <div class="bg-blue-100 p-3 rounded-lg">
+                            <i class="fas fa-users text-blue-600 text-xl"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white rounded-2xl p-6 shadow-lg card-hover border-l-4 border-purple-500">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-gray-500 text-sm font-medium">Tasa Conversión</p>
+                            <h3 class="text-3xl font-bold text-gray-800 mt-2">85%</h3>
+                        </div>
+                        <div class="bg-purple-100 p-3 rounded-lg">
+                            <i class="fas fa-chart-line text-purple-600 text-xl"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                <!-- New Quote Card -->
+                <div class="bg-white rounded-2xl shadow-xl overflow-hidden card-hover cursor-pointer" onclick="showSection('new-quote')">
+                    <div class="h-32 gradient-bg flex items-center justify-center relative overflow-hidden">
+                        <div class="absolute inset-0 bg-black/10"></div>
+                        <i class="fas fa-plus-circle text-6xl text-white/80 relative z-10"></i>
+                    </div>
+                    <div class="p-6">
+                        <h3 class="text-xl font-bold text-gray-800 mb-2">Nueva Cotización</h3>
+                        <p class="text-gray-600">Crear una nueva cotización para instalaciones eléctricas, comunicaciones o sistemas de seguridad.</p>
+                        <button class="mt-4 w-full bg-gradient-to-r from-orange-500 to-orange-600 text-white py-3 rounded-xl font-semibold hover:shadow-lg transition">
+                            Comenzar <i class="fas fa-arrow-right ml-2"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Recent Activity -->
+                <div class="bg-white rounded-2xl shadow-xl p-6">
+                    <h3 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                        <i class="fas fa-clock-rotate-left text-orange-600 mr-2"></i>
+                        Actividad Reciente
+                    </h3>
+                    <div id="recent-activity" class="space-y-3 max-h-64 overflow-y-auto">
+                        <p class="text-gray-500 text-center py-8">No hay actividad reciente</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- New Quote Section -->
+        <div id="new-quote-section" class="hidden animate-slide-in">
+            <div class="flex items-center mb-6">
+                <button onclick="showSection('dashboard')" class="mr-4 text-gray-600 hover:text-gray-800">
+                    <i class="fas fa-arrow-left text-xl"></i>
+                </button>
+                <h2 class="text-3xl font-bold text-gray-800">Nueva Cotización</h2>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <!-- Client Info -->
+                <div class="lg:col-span-1 space-y-6">
+                    <div class="bg-white rounded-2xl shadow-lg p-6">
+                        <h3 class="text-lg font-bold text-gray-800 mb-4 flex items-center">
+                            <i class="fas fa-user-tie text-orange-600 mr-2"></i>
+                            Información del Cliente
+                        </h3>
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Nombre Completo *</label>
+                                <input type="text" id="client-name" class="w-full px-4 py-2 border border-gray-300 rounded-lg input-focus outline-none transition" placeholder="Ej. Juan Pérez">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Empresa (Opcional)</label>
+                                <input type="text" id="client-company" class="w-full px-4 py-2 border border-gray-300 rounded-lg input-focus outline-none transition" placeholder="Nombre de la empresa">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Teléfono</label>
+                                <input type="tel" id="client-phone" class="w-full px-4 py-2 border border-gray-300 rounded-lg input-focus outline-none transition" placeholder="(300) 123-4567">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Correo Electrónico</label>
+                                <input type="email" id="client-email" class="w-full px-4 py-2 border border-gray-300 rounded-lg input-focus outline-none transition" placeholder="cliente@email.com">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Dirección del Proyecto</label>
+                                <textarea id="client-address" rows="3" class="w-full px-4 py-2 border border-gray-300 rounded-lg input-focus outline-none transition" placeholder="Dirección completa del proyecto"></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quote Settings -->
+                    <div class="bg-white rounded-2xl shadow-lg p-6">
+                        <h3 class="text-lg font-bold text-gray-800 mb-4 flex items-center">
+                            <i class="fas fa-cog text-orange-600 mr-2"></i>
+                            Configuración
+                        </h3>
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Tipo de Proyecto</label>
+                                <select id="project-type" class="w-full px-4 py-2 border border-gray-300 rounded-lg input-focus outline-none transition">
+                                    <option value="residential">Residencial</option>
+                                    <option value="commercial">Comercial</option>
+                                    <option value="industrial">Industrial</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Tiempo Estimado</label>
+                                <input type="text" id="project-time" class="w-full px-4 py-2 border border-gray-300 rounded-lg input-focus outline-none transition" placeholder="Ej. 3-5 días hábiles">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Garantía</label>
+                                <input type="text" id="warranty" class="w-full px-4 py-2 border border-gray-300 rounded-lg input-focus outline-none transition" value="1 año en mano de obra" placeholder="Términos de garantía">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Items Section -->
+                <div class="lg:col-span-2">
+                    <div class="bg-white rounded-2xl shadow-lg p-6 mb-6">
+                        <div class="flex justify-between items-center mb-6 flex-wrap gap-2">
+                            <h3 class="text-lg font-bold text-gray-800 flex items-center">
+                                <i class="fas fa-clipboard-list text-orange-600 mr-2"></i>
+                                Conceptos y Materiales
+                            </h3>
+                            <div class="flex space-x-2 flex-wrap gap-2">
+                                <button onclick="openItemModal('electric')" class="electric-badge text-white px-3 py-2 rounded-lg hover:opacity-90 transition flex items-center text-xs">
+                                    <i class="fas fa-bolt mr-1"></i> Eléctrico
+                                </button>
+                                <button onclick="openItemModal('communication')" class="comm-badge text-white px-3 py-2 rounded-lg hover:opacity-90 transition flex items-center text-xs">
+                                    <i class="fas fa-wifi mr-1"></i> Redes
+                                </button>
+                                <button onclick="openItemModal('security')" class="security-badge text-white px-3 py-2 rounded-lg hover:opacity-90 transition flex items-center text-xs">
+                                    <i class="fas fa-video mr-1"></i> CCTV
+                                </button>
+                                <button onclick="openItemModal('imou')" class="imou-badge text-white px-3 py-2 rounded-lg hover:opacity-90 transition flex items-center text-xs">
+                                    <i class="fas fa-camera mr-1"></i> Imou
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Items Table -->
+                        <div class="overflow-x-auto">
+                            <table class="w-full">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Concepto</th>
+                                        <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase w-16">Cant.</th>
+                                        <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase w-20">Und.</th>
+                                        <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase w-32">Precio Unit.</th>
+                                        <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase w-32">Total</th>
+                                        <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase w-12">Del</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="items-list" class="divide-y divide-gray-200">
+                                    <!-- Items will be added here -->
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div id="empty-state" class="text-center py-12 text-gray-400">
+                            <i class="fas fa-box-open text-5xl mb-3"></i>
+                            <p>No hay conceptos agregados</p>
+                            <p class="text-sm">Agrega materiales y mano de obra usando los botones de arriba</p>
+                        </div>
+                    </div>
+
+                    <!-- Totals Section -->
+                    <div class="bg-white rounded-2xl shadow-lg p-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Notas Adicionales</label>
+                                <textarea id="additional-notes" rows="4" class="w-full px-4 py-2 border border-gray-300 rounded-lg input-focus outline-none transition" placeholder="Condiciones especiales, especificaciones técnicas, etc."></textarea>
+                            </div>
+                            <div class="space-y-3">
+                                <div class="flex justify-between items-center py-2 border-b border-gray-200">
+                                    <span class="text-gray-600">Subtotal:</span>
+                                    <span class="text-lg font-semibold" id="subtotal">$0 COP</span>
+                                </div>
+                                <div class="flex justify-between items-center py-2 border-b border-gray-200">
+                                    <span class="text-gray-600">IVA (19%):</span>
+                                    <span class="text-lg font-semibold" id="tax">$0 COP</span>
+                                </div>
+                                <div class="flex justify-between items-center py-3 bg-gradient-to-r from-orange-50 to-blue-50 rounded-lg px-4 border-2 border-orange-200">
+                                    <span class="text-gray-900 font-bold text-lg">TOTAL:</span>
+                                    <span class="text-2xl font-bold text-orange-600" id="total">$0 COP</span>
+                                </div>
+                                <button onclick="generateQuote()" class="w-full bg-gradient-to-r from-orange-500 to-orange-600 text-white py-3 rounded-xl font-bold text-lg hover:shadow-lg transition transform hover:scale-[1.02] flex items-center justify-center">
+                                    <i class="fas fa-file-pdf mr-2"></i>
+                                    Generar Cotización PDF
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- History Section -->
+        <div id="history-section" class="hidden animate-slide-in">
+            <div class="flex items-center justify-between mb-6 flex-wrap gap-4">
+                <h2 class="text-3xl font-bold text-gray-800">Historial de Cotizaciones</h2>
+                <div class="flex space-x-2">
+                    <input type="text" id="search-history" placeholder="Buscar cotización..." class="px-4 py-2 border border-gray-300 rounded-lg input-focus outline-none" onkeyup="filterHistory()">
+                    <button onclick="showSection('dashboard')" class="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 transition">
+                        <i class="fas fa-arrow-left mr-2"></i>Volver
+                    </button>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Folio</th>
+                                <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cliente</th>
+                                <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha</th>
+                                <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo</th>
+                                <th class="px-6 py-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Total (COP)</th>
+                                <th class="px-6 py-4 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="history-list" class="divide-y divide-gray-200">
+                            <!-- History items will be populated here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Item Modal -->
+    <div id="item-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden animate-slide-in">
+            <div class="p-6 border-b border-gray-200 flex justify-between items-center bg-gradient-to-r from-orange-50 to-blue-50">
+                <h3 class="text-xl font-bold text-gray-800" id="modal-title">Agregar Concepto</h3>
+                <button onclick="closeItemModal()" class="text-gray-400 hover:text-gray-600 text-2xl">&times;</button>
+            </div>
+            
+            <div class="p-6 overflow-y-auto max-h-[60vh]">
+                <!-- Quick Add Items -->
+                <div class="mb-6">
+                    <h4 class="text-sm font-semibold text-gray-600 mb-3 uppercase tracking-wide">Selección Rápida</h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3" id="quick-items">
+                        <!-- Quick items will be populated here -->
+                    </div>
+                </div>
+
+                <div class="border-t border-gray-200 pt-6">
+                    <h4 class="text-sm font-semibold text-gray-600 mb-3 uppercase tracking-wide">Concepto Personalizado</h4>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Descripción</label>
+                            <input type="text" id="custom-desc" class="w-full px-4 py-2 border border-gray-300 rounded-lg input-focus outline-none" placeholder="Descripción del concepto">
+                        </div>
+                        <div class="grid grid-cols-3 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Cantidad</label>
+                                <input type="number" id="custom-qty" class="w-full px-4 py-2 border border-gray-300 rounded-lg input-focus outline-none" value="1" min="1">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Unidad</label>
+                                <select id="custom-unit" class="w-full px-4 py-2 border border-gray-300 rounded-lg input-focus outline-none">
+                                    <option value="pza">Pieza</option>
+                                    <option value="m">Metro</option>
+                                    <option value="m²">Metro²</option>
+                                    <option value="hr">Hora</option>
+                                    <option value="serv">Servicio</option>
+                                    <option value="cámara">Cámara</option>
+                                    <option value="punto">Punto</option>
+                                    <option value="und">Und</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Precio Unit. (COP)</label>
+                                <input type="number" id="custom-price" class="w-full px-4 py-2 border border-gray-300 rounded-lg input-focus outline-none" placeholder="0" step="100">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="p-6 border-t border-gray-200 bg-gray-50 flex justify-end space-x-3">
+                <button onclick="closeItemModal()" class="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100 transition">Cancelar</button>
+                <button onclick="addCustomItem()" class="px-6 py-2 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg hover:shadow-lg transition">
+                    <i class="fas fa-plus mr-2"></i>Agregar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quote Preview Modal -->
+    <div id="preview-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full animate-slide-in overflow-hidden">
+            <div class="bg-gradient-to-r from-orange-500 to-blue-500 p-6 text-white text-center">
+                <i class="fas fa-check-circle text-5xl mb-3"></i>
+                <h3 class="text-2xl font-bold">¡Cotización Generada!</h3>
+                <p class="text-orange-100">La cotización se ha guardado exitosamente</p>
+            </div>
+            
+            <div class="p-6">
+                <div class="total-highlight rounded-xl p-6 mb-6 text-center">
+                    <p class="text-gray-600 text-sm uppercase tracking-wide mb-1">Valor Total del Proyecto</p>
+                    <h2 class="text-4xl font-bold text-gray-800" id="preview-total">$0 COP</h2>
+                    <p class="text-gray-500 text-sm mt-2">IVA incluido (19%)</p>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4 mb-6">
+                    <div class="bg-gray-50 rounded-lg p-4 text-center">
+                        <p class="text-gray-500 text-xs uppercase">Folio</p>
+                        <p class="font-bold text-gray-800" id="preview-folio">-</p>
+                    </div>
+                    <div class="bg-gray-50 rounded-lg p-4 text-center">
+                        <p class="text-gray-500 text-xs uppercase">Conceptos</p>
+                        <p class="font-bold text-gray-800" id="preview-items">0</p>
+                    </div>
+                </div>
+
+                <div class="space-y-3">
+                    <button onclick="closePreview(); showSection('history');" class="w-full bg-gray-800 text-white py-3 rounded-xl font-semibold hover:bg-gray-900 transition">
+                        <i class="fas fa-list mr-2"></i>Ver en Historial
+                    </button>
+                    <button onclick="closePreview(); showSection('new-quote');" class="w-full border-2 border-gray-300 text-gray-700 py-3 rounded-xl font-semibold hover:bg-gray-50 transition">
+                        <i class="fas fa-plus mr-2"></i>Nueva Cotización
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Data Storage
+        let currentQuote = {
+            items: [],
+            client: {},
+            date: new Date()
+        };
+
+        let quoteHistory = JSON.parse(localStorage.getItem('hc_quotes')) || [];
+        let itemCounter = 0;
+
+        // Predefined Items Database - Precios en COP (Pesos Colombianos)
+        const itemsDB = {
+            electric: [
+                { desc: "Cable THW-LS/THHW-LS Cal. 12 AWG (Rollo 100m)", unit: "rollo", price: 125000, category: "Cables" },
+                { desc: "Cable THW-LS/THHW-LS Cal. 10 AWG (Rollo 100m)", unit: "rollo", price: 187500, category: "Cables" },
+                { desc: "Cable THW-LS/THHW-LS Cal. 8 AWG (Rollo 100m)", unit: "rollo", price: 285000, category: "Cables" },
+                { desc: "Cable Duplex 2x12 AWG (Rollo 100m)", unit: "rollo", price: 145000, category: "Cables" },
+                { desc: "Tubo Conduit PVC 1/2\" (Rollo 25m)", unit: "rollo", price: 45000, category: "Conduit" },
+                { desc: "Tubo Conduit PVC 3/4\" (Rollo 25m)", unit: "rollo", price: 62000, category: "Conduit" },
+                { desc: "Codo Conduit PVC 1/2\" (Paquete 10 und)", unit: "paq", price: 12000, category: "Conduit" },
+                { desc: "Cople Conduit PVC 1/2\" (Paquete 10 und)", unit: "paq", price: 8500, category: "Conduit" },
+                { desc: "Caja de Paso Plástica 4x2\"", unit: "pza", price: 3500, category: "Cajas" },
+                { desc: "Caja de Paso Plástica 4x4\"", unit: "pza", price: 5500, category: "Cajas" },
+                { desc: "Caja de Paso Metálica 4x4\"", unit: "pza", price: 8500, category: "Cajas" },
+                { desc: "Placa y Apagador Sencillo Blanco", unit: "pza", price: 12500, category: "Accesorios" },
+                { desc: "Placa y Apagador Doble Blanco", unit: "pza", price: 14500, category: "Accesorios" },
+                { desc: "Toma Corriente Duplex 15A", unit: "pza", price: 9500, category: "Accesorios" },
+                { desc: "Toma Corriente Duplex 20A", unit: "pza", price: 12500, category: "Accesorios" },
+                { desc: "Interruptor Termomagnético 2P 20A", unit: "pza", price: 28500, category: "Protección" },
+                { desc: "Interruptor Termomagnético 2P 30A", unit: "pza", price: 32500, category: "Protección" },
+                { desc: "Interruptor Termomagnético 2P 40A", unit: "pza", price: 38500, category: "Protección" },
+                { desc: "Centro de Carga 4 Espacios + Principal", unit: "pza", price: 85000, category: "Tableros" },
+                { desc: "Centro de Carga 8 Espacios + Principal", unit: "pza", price: 125000, category: "Tableros" },
+                { desc: "Centro de Carga 12 Espacios + Principal", unit: "pza", price: 185000, category: "Tableros" },
+                { desc: "Mano de Obra Instalación Eléctrica Básica", unit: "m²", price: 45000, category: "Mano de Obra" },
+                { desc: "Mano de Obra por Punto Eléctrico (Toma/Interruptor)", unit: "punto", price: 85000, category: "Mano de Obra" },
+                { desc: "Instalación de Tablero Principal", unit: "serv", price: 350000, category: "Mano de Obra" }
+            ],
+            communication: [
+                { desc: "Cable UTP Cat 5e (Caja 305m) Gris", unit: "caja", price: 285000, category: "Cables" },
+                { desc: "Cable UTP Cat 6 (Caja 305m) Azul", unit: "caja", price: 425000, category: "Cables" },
+                { desc: "Cable UTP Cat 6A (Caja 305m) Blindado", unit: "caja", price: 685000, category: "Cables" },
+                { desc: "Cable Fibra Óptica Monomodo 2 Hilos", unit: "m", price: 2500, category: "Cables" },
+                { desc: "Conector RJ45 Cat 5e (Bolsa 100 und)", unit: "bolsa", price: 45000, category: "Conectores" },
+                { desc: "Conector RJ45 Cat 6 (Bolsa 100 und)", unit: "bolsa", price: 65000, category: "Conectores" },
+                { desc: "Patch Panel 24 Puertos Cat 5e", unit: "pza", price: 285000, category: "Patch Panel" },
+                { desc: "Patch Panel 24 Puertos Cat 6", unit: "pza", price: 425000, category: "Patch Panel" },
+                { desc: "Switch 8 Puertos 10/100/1000 Mbps", unit: "pza", price: 285000, category: "Redes" },
+                { desc: "Switch 16 Puertos 10/100/1000 Mbps", unit: "pza", price: 485000, category: "Redes" },
+                { desc: "Switch 24 Puertos Administrable Gigabit", unit: "pza", price: 1250000, category: "Redes" },
+                { desc: "Switch PoE 8 Puertos (Para cámaras)", unit: "pza", price: 685000, category: "Redes" },
+                { desc: "Switch PoE 16 Puertos (Para cámaras)", unit: "pza", price: 1250000, category: "Redes" },
+                { desc: "Rack de Pared 6U (Incluye accesorios)", unit: "pza", price: 285000, category: "Rack" },
+                { desc: "Rack de Pared 9U (Incluye accesorios)", unit: "pza", price: 385000, category: "Rack" },
+                { desc: "Rack de Piso 24U (Incluye accesorios)", unit: "pza", price: 1850000, category: "Rack" },
+                { desc: "Faceplate 1 Puerto (Keystone)", unit: "pza", price: 6500, category: "Accesorios" },
+                { desc: "Faceplate 2 Puertos (Keystone)", unit: "pza", price: 8500, category: "Accesorios" },
+                { desc: "Faceplate 4 Puertos (Keystone)", unit: "pza", price: 12500, category: "Accesorios" },
+                { desc: "Jack Keystone Cat 6 (Hembra)", unit: "pza", price: 8500, category: "Accesorios" },
+                { desc: "Patch Cord 1m Cat 6 (Gris)", unit: "pza", price: 8500, category: "Patch Cord" },
+                { desc: "Patch Cord 2m Cat 6 (Gris)", unit: "pza", price: 10500, category: "Patch Cord" },
+                { desc: "Patch Cord 5m Cat 6 (Gris)", unit: "pza", price: 15500, category: "Patch Cord" },
+                { desc: "Mano de Obra Punto de Red (Cableado estructurado)", unit: "punto", price: 125000, category: "Mano de Obra" },
+                { desc: "Instalación Rack y Equipos de Red", unit: "serv", price: 485000, category: "Mano de Obra" },
+                { desc: "Certificación de Cableado (Por punto)", unit: "punto", price: 25000, category: "Servicios" }
+            ],
+            security: [
+                { desc: "Cámara Domo IP Genérica 2MP (1080p) Interior", unit: "cámara", price: 285000, category: "Cámaras Genéricas" },
+                { desc: "Cámara Domo IP Genérica 4MP (2K) Interior", unit: "cámara", price: 425000, category: "Cámaras Genéricas" },
+                { desc: "Cámara Bala IP Genérica 2MP (1080p) Exterior", unit: "cámara", price: 325000, category: "Cámaras Genéricas" },
+                { desc: "Cámara Bala IP Genérica 4MP (2K) Exterior IR 30m", unit: "cámara", price: 485000, category: "Cámaras Genéricas" },
+                { desc: "DVR 4 Canales 1080p (Híbrido)", unit: "pza", price: 485000, category: "Grabación" },
+                { desc: "DVR 8 Canales 1080p (Híbrido)", unit: "pza", price: 685000, category: "Grabación" },
+                { desc: "NVR 4 Canales IP 4K", unit: "pza", price: 585000, category: "Grabación" },
+                { desc: "NVR 8 Canales IP 4K (PoE integrado)", unit: "pza", price: 985000, category: "Grabación" },
+                { desc: "NVR 16 Canales IP 4K (PoE integrado)", unit: "pza", price: 1850000, category: "Grabación" },
+                { desc: "Disco Duro 1TB (Especial CCTV)", unit: "pza", price: 285000, category: "Almacenamiento" },
+                { desc: "Disco Duro 2TB (Especial CCTV)", unit: "pza", price: 425000, category: "Almacenamiento" },
+                { desc: "Disco Duro 4TB (Especial CCTV)", unit: "pza", price: 685000, category: "Almacenamiento" },
+                { desc: "Fuente de Poder 12V 5A (Para 4 cámaras)", unit: "pza", price: 85000, category: "Energía" },
+                { desc: "Fuente de Poder 12V 10A (Para 8 cámaras)", unit: "pza", price: 145000, category: "Energía" },
+                { desc: "Soporte para Cámara Domo (Ajustable)", unit: "pza", price: 25000, category: "Accesorios" },
+                { desc: "Soporte para Cámara Bala (Ajustable)", unit: "pza", price: 35000, category: "Accesorios" },
+                { desc: "Gabinete Exterior para Cámaras (IP66)", unit: "pza", price: 185000, category: "Protección" },
+                { desc: "Cable Coaxial RG6 + Energía (Rollo 100m)", unit: "rollo", price: 145000, category: "Cables" }
+            ],
+            imou: [
+                { desc: "Cámara Imou Bullet 2C 2MP (1080p) WiFi Exterior IP67", unit: "cámara", price: 285000, category: "Imou WiFi" },
+                { desc: "Cámara Imou Bullet 2E 4MP (2K) WiFi Exterior IP67", unit: "cámara", price: 385000, category: "Imou WiFi" },
+                { desc: "Cámara Imou Ranger 2C 2MP (1080p) WiFi Interior 360°", unit: "cámara", price: 245000, category: "Imou WiFi" },
+                { desc: "Cámara Imou Ranger 2 4MP (2K) WiFi Interior 360°", unit: "cámara", price: 325000, category: "Imou WiFi" },
+                { desc: "Cámara Imou Cue 2C 2MP (1080p) WiFi Interior", unit: "cámara", price: 195000, category: "Imou WiFi" },
+                { desc: "Cámara Imou Cell Pro 2MP (1080p) Batería/Solar Exterior", unit: "cámara", price: 485000, category: "Imou Solar" },
+                { desc: "Cámara Imou Cell 2 4MP (2K) Batería/Solar Exterior", unit: "cámara", price: 585000, category: "Imou Solar" },
+                { desc: "Cámara Imou Cruiser 2MP (1080p) PTZ WiFi Exterior", unit: "cámara", price: 425000, category: "Imou PTZ" },
+                { desc: "Cámara Imou Cruiser 2 4MP (2K) PTZ WiFi Exterior", unit: "cámara", price: 585000, category: "Imou PTZ" },
+                { desc: "Cámara Imou Floodlight 2MP (1080p) WiFi con Reflectores", unit: "cámara", price: 385000, category: "Imou Especial" },
+                { desc: "Cámara Imou Doorbell 2MP (1080p) WiFi Timbre Video", unit: "pza", price: 425000, category: "Imou Timbre" },
+                { desc: "Cámara Imou Doorbell 2 4MP (2K) WiFi Timbre Video", unit: "pza", price: 585000, category: "Imou Timbre" },
+                { desc: "Cámara Imou Rex 2MP (1080p) PTZ IP Interior 360°", unit: "cámara", price: 325000, category: "Imou PTZ" },
+                { desc: "Cámara Imou Rex 3D 4MP (2K) PTZ IP Interior 360°", unit: "cámara", price: 425000, category: "Imou PTZ" },
+                { desc: "Kit Imou 4 Cámaras WiFi 2MP + NVR 4CH (Sin disco)", unit: "kit", price: 985000, category: "Kits Imou" },
+                { desc: "Kit Imou 8 Cámaras WiFi 2MP + NVR 8CH (Sin disco)", unit: "kit", price: 1685000, category: "Kits Imou" },
+                { desc: "Tarjeta SD Imou 64GB (Clase 10)", unit: "pza", price: 65000, category: "Almacenamiento Imou" },
+                { desc: "Tarjeta SD Imou 128GB (Clase 10)", unit: "pza", price: 105000, category: "Almacenamiento Imou" },
+                { desc: "Adaptador de Corriente Imou Original 12V", unit: "pza", price: 45000, category: "Accesorios Imou" },
+                { desc: "Soporte de Techo Imou Original", unit: "pza", price: 35000, category: "Accesorios Imou" },
+                { desc: "Mano de Obra Instalación Cámara Imou", unit: "cámara", price: 125000, category: "Mano de Obra" },
+                { desc: "Configuración App Imou Life y Acceso Remoto", unit: "serv", price: 85000, category: "Servicios" }
+            ]
+        };
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            updateDate();
+            updateStats();
+            loadHistory();
+            setInterval(updateDate, 60000);
+        });
+
+        function updateDate() {
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            document.getElementById('currentDate').textContent = new Date().toLocaleDateString('es-CO', options);
+        }
+
+        function showSection(section) {
+            document.getElementById('dashboard-section').classList.add('hidden');
+            document.getElementById('new-quote-section').classList.add('hidden');
+            document.getElementById('history-section').classList.add('hidden');
+            
+            document.getElementById(section + '-section').classList.remove('hidden');
+            
+            if (section === 'dashboard') {
+                updateStats();
+            } else if (section === 'history') {
+                loadHistory();
+            }
+        }
+
+        function formatCOP(amount) {
+            return '$' + Math.round(amount).toLocaleString('es-CO') + ' COP';
+        }
+
+        function formatCOPShort(amount) {
+            return '$' + Math.round(amount).toLocaleString('es-CO');
+        }
+
+        function updateStats() {
+            const today = new Date().toDateString();
+            const todayQuotes = quoteHistory.filter(q => new Date(q.date).toDateString() === today).length;
+            
+            const monthTotal = quoteHistory
+                .filter(q => {
+                    const qDate = new Date(q.date);
+                    const now = new Date();
+                    return qDate.getMonth() === now.getMonth() && qDate.getFullYear() === now.getFullYear();
+                })
+                .reduce((sum, q) => sum + q.total, 0);
+
+            const uniqueClients = new Set(quoteHistory.map(q => q.client.email)).size;
+
+            document.getElementById('stats-today').textContent = todayQuotes;
+            document.getElementById('stats-month').textContent = formatCOP(monthTotal);
+            document.getElementById('stats-clients').textContent = uniqueClients;
+
+            const recentContainer = document.getElementById('recent-activity');
+            if (quoteHistory.length > 0) {
+                const recent = quoteHistory.slice(-5).reverse();
+                recentContainer.innerHTML = recent.map(q => `
+                    <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition cursor-pointer" onclick="viewQuote('${q.id}')">
+                        <div class="flex items-center space-x-3">
+                            <div class="bg-orange-100 p-2 rounded-full">
+                                <i class="fas fa-file-invoice text-orange-600"></i>
+                            </div>
+                            <div>
+                                <p class="font-semibold text-gray-800">${q.client.name}</p>
+                                <p class="text-xs text-gray-500">${new Date(q.date).toLocaleDateString('es-CO')}</p>
+                            </div>
+                        </div>
+                        <span class="font-bold text-orange-600">${formatCOP(q.total)}</span>
+                    </div>
+                `).join('');
+            }
+        }
+
+        function openItemModal(type) {
+            const modal = document.getElementById('item-modal');
+            const title = document.getElementById('modal-title');
+            const container = document.getElementById('quick-items');
+            
+            modal.classList.remove('hidden');
+            
+            const titles = {
+                electric: 'Agregar Material Eléctrico',
+                communication: 'Agregar Material de Comunicaciones',
+                security: 'Agregar Equipos de Seguridad CCTV',
+                imou: 'Agregar Cámaras Imou'
+            };
+            
+            title.textContent = titles[type];
+            
+            const items = itemsDB[type];
+            container.innerHTML = items.map((item, idx) => `
+                <button onclick="addQuickItem('${type}', ${idx})" class="text-left p-3 border border-gray-200 rounded-lg hover:border-orange-500 hover:bg-orange-50 transition group">
+                    <div class="flex justify-between items-start">
+                        <div class="flex-1 pr-2">
+                            <p class="font-medium text-gray-800 group-hover:text-orange-700 text-sm">${item.desc}</p>
+                            <span class="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded mt-1 inline-block">${item.category}</span>
+                        </div>
+                        <span class="font-bold text-green-600 text-sm whitespace-nowrap">${formatCOPShort(item.price)}</span>
+                    </div>
+                    <p class="text-xs text-gray-400 mt-1">Por ${item.unit}</p>
+                </button>
+            `).join('');
+        }
+
+        function closeItemModal() {
+            document.getElementById('item-modal').classList.add('hidden');
+            document.getElementById('custom-desc').value = '';
+            document.getElementById('custom-qty').value = '1';
+            document.getElementById('custom-price').value = '';
+        }
+
+        function addQuickItem(type, idx) {
+            const item = itemsDB[type][idx];
+            addItemToQuote({
+                desc: item.desc,
+                qty: 1,
+                unit: item.unit,
+                price: item.price,
+                type: type
+            });
+            closeItemModal();
+        }
+
+        function addCustomItem() {
+            const desc = document.getElementById('custom-desc').value;
+            const qty = parseInt(document.getElementById('custom-qty').value) || 1;
+            const unit = document.getElementById('custom-unit').value;
+            const price = parseFloat(document.getElementById('custom-price').value) || 0;
+
+            if (!desc || price <= 0) {
+                alert('Por favor ingresa una descripción y precio válidos');
+                return;
+            }
+
+            addItemToQuote({
+                desc: desc,
+                qty: qty,
+                unit: unit,
+                price: price,
+                type: 'custom'
+            });
+            closeItemModal();
+        }
+
+        function addItemToQuote(item) {
+            item.id = ++itemCounter;
+            currentQuote.items.push(item);
+            renderItems();
+        }
+
+        function renderItems() {
+            const container = document.getElementById('items-list');
+            const emptyState = document.getElementById('empty-state');
+            
+            if (currentQuote.items.length === 0) {
+                container.innerHTML = '';
+                emptyState.classList.remove('hidden');
+                updateTotals();
+                return;
+            }
+
+            emptyState.classList.add('hidden');
+            container.innerHTML = currentQuote.items.map(item => `
+                <tr class="hover:bg-gray-50 transition">
+                    <td class="px-4 py-3">
+                        <div class="flex items-center">
+                            <span class="w-2 h-2 rounded-full mr-2 flex-shrink-0 ${item.type === 'electric' ? 'bg-orange-500' : item.type === 'communication' ? 'bg-blue-500' : item.type === 'security' ? 'bg-green-500' : item.type === 'imou' ? 'bg-purple-500' : 'bg-gray-500'}"></span>
+                            <span class="text-sm font-medium text-gray-900 leading-tight">${item.desc}</span>
+                        </div>
+                    </td>
+                    <td class="px-2 py-3 text-center">
+                        <input type="number" value="${item.qty}" min="1" 
+                            onchange="updateItemQty(${item.id}, this.value)"
+                            class="w-12 text-center border border-gray-300 rounded px-1 py-1 text-sm input-focus">
+                    </td>
+                    <td class="px-2 py-3 text-center text-xs text-gray-600">
+                        ${item.unit}
+                    </td>
+                    <td class="px-2 py-3 text-right">
+                        <input type="number" value="${Math.round(item.price)}" 
+                            onchange="updateItemPrice(${item.id}, this.value)"
+                            class="w-24 text-right editable-price rounded px-2 py-1 text-sm"
+                            title="Click para editar precio">
+                    </td>
+                    <td class="px-4 py-3 text-right text-sm font-semibold text-gray-900">
+                        ${formatCOPShort(item.qty * item.price)}
+                    </td>
+                    <td class="px-2 py-3 text-center">
+                        <button onclick="removeItem(${item.id})" class="text-red-500 hover:text-red-700 transition p-1">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+
+            updateTotals();
+        }
+
+        function updateItemQty(id, newQty) {
+            const item = currentQuote.items.find(i => i.id === id);
+            if (item) {
+                item.qty = parseInt(newQty) || 1;
+                renderItems();
+            }
+        }
+
+        function updateItemPrice(id, newPrice) {
+            const item = currentQuote.items.find(i => i.id === id);
+            if (item) {
+                item.price = parseFloat(newPrice) || 0;
+                renderItems();
+            }
+        }
+
+        function removeItem(id) {
+            currentQuote.items = currentQuote.items.filter(i => i.id !== id);
+            renderItems();
+        }
+
+        function updateTotals() {
+            const subtotal = currentQuote.items.reduce((sum, item) => sum + (item.qty * item.price), 0);
+            const tax = subtotal * 0.19; // IVA Colombia 19%
+            const total = subtotal + tax;
+
+            document.getElementById('subtotal').textContent = formatCOP(subtotal);
+            document.getElementById('tax').textContent = formatCOP(tax);
+            document.getElementById('total').textContent = formatCOP(total);
+        }
+
+        function generateQuote() {
+            const clientName = document.getElementById('client-name').value;
+            if (!clientName) {
+                alert('Por favor ingresa el nombre del cliente');
+                document.getElementById('client-name').focus();
+                return;
+            }
+
+            if (currentQuote.items.length === 0) {
+                alert('Agrega al menos un concepto a la cotización');
+                return;
+            }
+
+            // Save client info
+            currentQuote.client = {
+                name: clientName,
+                company: document.getElementById('client-company').value,
+                phone: document.getElementById('client-phone').value,
+                email: document.getElementById('client-email').value,
+                address: document.getElementById('client-address').value
+            };
+
+            currentQuote.projectType = document.getElementById('project-type').value;
+            currentQuote.projectTime = document.getElementById('project-time').value;
+            currentQuote.warranty = document.getElementById('warranty').value;
+            currentQuote.notes = document.getElementById('additional-notes').value;
+            currentQuote.id = 'HC-' + Date.now();
+            currentQuote.date = new Date().toISOString();
+
+            // Calculate totals
+            const subtotal = currentQuote.items.reduce((sum, item) => sum + (item.qty * item.price), 0);
+            const tax = subtotal * 0.19;
+            currentQuote.total = subtotal + tax;
+
+            // Save to history
+            quoteHistory.push({...currentQuote});
+            localStorage.setItem('hc_quotes', JSON.stringify(quoteHistory));
+
+            // Show preview with total
+            showPreview(currentQuote);
+
+            // Generate PDF
+            generatePDF();
+
+            // Reset form
+            resetForm();
+        }
+
+        function showPreview(quote) {
+            document.getElementById('preview-total').textContent = formatCOP(quote.total);
+            document.getElementById('preview-folio').textContent = quote.id;
+            document.getElementById('preview-items').textContent = quote.items.length;
+            document.getElementById('preview-modal').classList.remove('hidden');
+        }
+
+        function closePreview() {
+            document.getElementById('preview-modal').classList.add('hidden');
+        }
+
+        function generatePDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            // Colors
+            const orange = [249, 115, 22];
+            const blue = [14, 165, 233];
+            
+            // Header
+            doc.setFillColor(249, 115, 22);
+            doc.rect(0, 0, 210, 50, 'F');
+            
+            // Logo area
+            doc.setFillColor(255, 255, 255);
+            doc.roundedRect(15, 8, 35, 35, 5, 5, 'F');
+            
+            // HC Logo representation
+            doc.setTextColor(249, 115, 22);
+            doc.setFontSize(20);
+            doc.setFont(undefined, 'bold');
+            doc.text('H', 22, 28);
+            doc.setTextColor(14, 165, 233);
+            doc.text('C', 38, 28);
+            
+            // Lightning bolt
+            doc.setDrawColor(255, 255, 255);
+            doc.setLineWidth(2);
+            doc.line(30, 15, 30, 35);
+            
+            // Company info
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(18);
+            doc.setFont(undefined, 'bold');
+            doc.text('HC ELÉCTRICOS & COMUNICACIONES', 55, 20);
+            doc.setFontSize(9);
+            doc.setFont(undefined, 'normal');
+            doc.text('Soluciones Integrales en Electricidad, Redes y Seguridad Electrónica', 55, 28);
+            doc.text('NIT: 900.XXX.XXX-X | Tel: (300) XXX-XXXX | contacto@hcelectricos.com', 55, 35);
+            doc.text('Bogotá, Colombia', 55, 42);
+            
+            // Quote Info Box
+            doc.setFillColor(240, 240, 240);
+            doc.roundedRect(140, 55, 60, 30, 3, 3, 'F');
+            doc.setTextColor(100, 100, 100);
+            doc.setFontSize(10);
+            doc.setFont(undefined, 'bold');
+            doc.text('COTIZACIÓN', 145, 65);
+            doc.setTextColor(249, 115, 22);
+            doc.setFontSize(12);
+            doc.text(currentQuote.id, 145, 75);
+            doc.setTextColor(100, 100, 100);
+            doc.setFontSize(9);
+            doc.setFont(undefined, 'normal');
+            doc.text(`Fecha: ${new Date().toLocaleDateString('es-CO')}`, 145, 82);
+            
+            // Client Info
+            doc.setFontSize(11);
+            doc.setFont(undefined, 'bold');
+            doc.setTextColor(249, 115, 22);
+            doc.text('CLIENTE:', 14, 60);
+            doc.setFont(undefined, 'normal');
+            doc.setTextColor(0, 0, 0);
+            doc.setFontSize(10);
+            doc.text(currentQuote.client.name, 14, 68);
+            if (currentQuote.client.company) {
+                doc.text(currentQuote.client.company, 14, 75);
+                doc.text(`Tel: ${currentQuote.client.phone || 'N/A'}`, 14, 82);
+            } else {
+                doc.text(`Tel: ${currentQuote.client.phone || 'N/A'}`, 14, 75);
+            }
+            doc.text(`Dir: ${currentQuote.client.address || 'N/A'}`, 14, currentQuote.client.company ? 89 : 82);
+            
+            // Table
+            const tableData = currentQuote.items.map(item => [
+                item.desc,
+                item.qty,
+                item.unit,
+                '$' + Math.round(item.price).toLocaleString('es-CO'),
+                '$' + Math.round(item.qty * item.price).toLocaleString('es-CO')
+            ]);
+
+            doc.autoTable({
+                startY: 95,
+                head: [['CONCEPTO', 'CANT.', 'UND.', 'V. UNIT.', 'V. TOTAL']],
+                body: tableData,
+                theme: 'grid',
+                headStyles: { 
+                    fillColor: [249, 115, 22], 
+                    textColor: [255, 255, 255],
+                    fontStyle: 'bold',
+                    halign: 'center'
+                },
+                styles: { 
+                    fontSize: 9,
+                    cellPadding: 2
+                },
+                columnStyles: {
+                    0: { cellWidth: 'auto', halign: 'left' },
+                    1: { cellWidth: 15, halign: 'center' },
+                    2: { cellWidth: 20, halign: 'center' },
+                    3: { cellWidth: 30, halign: 'right' },
+                    4: { cellWidth: 30, halign: 'right' }
+                },
+                alternateRowStyles: { fillColor: [255, 250, 245] }
+            });
+
+            // Totals
+            const finalY = doc.lastAutoTable.finalY + 10;
+            const subtotal = currentQuote.items.reduce((sum, item) => sum + (item.qty * item.price), 0);
+            const tax = subtotal * 0.19;
+            const total = subtotal + tax;
+
+            // Totals box
+            doc.setFillColor(255, 250, 245);
+            doc.roundedRect(120, finalY, 80, 35, 3, 3, 'F');
+            doc.setDrawColor(249, 115, 22);
+            doc.setLineWidth(0.5);
+            doc.roundedRect(120, finalY, 80, 35, 3, 3, 'S');
+            
+            doc.setFontSize(10);
+            doc.setTextColor(100, 100, 100);
+            doc.setFont(undefined, 'normal');
+            doc.text('Subtotal:', 125, finalY + 10);
+            doc.text('$' + Math.round(subtotal).toLocaleString('es-CO'), 195, finalY + 10, { align: 'right' });
+            
+            doc.text('IVA (19%):', 125, finalY + 18);
+            doc.text('$' + Math.round(tax).toLocaleString('es-CO'), 195, finalY + 18, { align: 'right' });
+            
+            doc.setFont(undefined, 'bold');
+            doc.setTextColor(249, 115, 22);
+            doc.setFontSize(12);
+            doc.text('TOTAL:', 125, finalY + 30);
+            doc.text('$' + Math.round(total).toLocaleString('es-CO'), 195, finalY + 30, { align: 'right' });
+
+            // Terms
+            const termsY = finalY + 45;
+            doc.setFont(undefined, 'normal');
+            doc.setFontSize(9);
+            doc.setTextColor(100, 100, 100);
+            doc.text('CONDICIONES COMERCIALES:', 14, termsY);
+            doc.setFontSize(8);
+            doc.setTextColor(0, 0, 0);
+            doc.text(`• Tiempo de entrega: ${currentQuote.projectTime || 'Por definir según alcance'}`, 14, termsY + 6);
+            doc.text(`• Garantía: ${currentQuote.warranty || '1 año en mano de obra y equipos'}`, 14, termsY + 11);
+            doc.text('• Validez de cotización: 30 días calendario', 14, termsY + 16);
+            doc.text('• Forma de pago: 50% anticipo, 50% contra entrega', 14, termsY + 21);
+            doc.text('• Precios en pesos colombianos (COP) incluyen IVA', 14, termsY + 26);
+
+            if (currentQuote.notes) {
+                doc.text('Notas adicionales:', 14, termsY + 35);
+                doc.setTextColor(100, 100, 100);
+                const splitNotes = doc.splitTextToSize(currentQuote.notes, 180);
+                doc.text(splitNotes, 14, termsY + 40);
+            }
+
+            // Footer
+            doc.setFillColor(249, 115, 22);
+            doc.rect(0, 280, 210, 17, 'F');
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(8);
+            doc.text('HC Eléctricos & Comunicaciones - Soluciones integrales en Electricidad, Redes y Seguridad Electrónica', 105, 287, { align: 'center' });
+            doc.text('Cotización generada electrónicamente - ' + new Date().toLocaleDateString('es-CO'), 105, 292, { align: 'center' });
+
+            doc.save(`Cotizacion_${currentQuote.id}.pdf`);
+        }
+
+        function resetForm() {
+            document.getElementById('client-name').value = '';
+            document.getElementById('client-company').value = '';
+            document.getElementById('client-phone').value = '';
+            document.getElementById('client-email').value = '';
+            document.getElementById('client-address').value = '';
+            document.getElementById('project-time').value = '';
+            document.getElementById('additional-notes').value = '';
+            currentQuote.items = [];
+            itemCounter = 0;
+            renderItems();
+        }
+
+        function loadHistory() {
+            const container = document.getElementById('history-list');
+            if (quoteHistory.length === 0) {
+                container.innerHTML = '<tr><td colspan="6" class="px-6 py-8 text-center text-gray-500">No hay cotizaciones guardadas</td></tr>';
+                return;
+            }
+
+            container.innerHTML = quoteHistory.slice().reverse().map(q => `
+                <tr class="hover:bg-gray-50 transition">
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-orange-600">${q.id}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        <div>
+                            <div class="font-medium">${q.client.name}</div>
+                            <div class="text-gray-500 text-xs">${q.client.company || ''}</div>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${new Date(q.date).toLocaleDateString('es-CO')}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${q.projectType === 'residential' ? 'bg-green-100 text-green-800' : q.projectType === 'commercial' ? 'bg-blue-100 text-blue-800' : 'bg-purple-100 text-purple-800'}">
+                            ${q.projectType === 'residential' ? 'Residencial' : q.projectType === 'commercial' ? 'Comercial' : 'Industrial'}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right font-bold">${formatCOP(q.total)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
+                        <button onclick="viewQuote('${q.id}')" class="text-blue-600 hover:text-blue-900 mr-3" title="Ver detalles">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <button onclick="deleteQuote('${q.id}')" class="text-red-600 hover:text-red-900" title="Eliminar">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function viewQuote(id) {
+            const quote = quoteHistory.find(q => q.id === id);
+            if (!quote) return;
+
+            document.getElementById('client-name').value = quote.client.name;
+            document.getElementById('client-company').value = quote.client.company || '';
+            document.getElementById('client-phone').value = quote.client.phone || '';
+            document.getElementById('client-email').value = quote.client.email || '';
+            document.getElementById('client-address').value = quote.client.address || '';
+            document.getElementById('project-type').value = quote.projectType || 'residential';
+            document.getElementById('project-time').value = quote.projectTime || '';
+            document.getElementById('warranty').value = quote.warranty || '';
+            document.getElementById('additional-notes').value = quote.notes || '';
+
+            currentQuote.items = quote.items.map(item => ({...item}));
+            itemCounter = Math.max(...currentQuote.items.map(i => i.id), 0);
+            
+            renderItems();
+            showSection('new-quote');
+        }
+
+        function deleteQuote(id) {
+            if (!confirm('¿Estás seguro de eliminar esta cotización?')) return;
+            
+            quoteHistory = quoteHistory.filter(q => q.id !== id);
+            localStorage.setItem('hc_quotes', JSON.stringify(quoteHistory));
+            loadHistory();
+            updateStats();
+        }
+
+        function filterHistory() {
+            const searchTerm = document.getElementById('search-history').value.toLowerCase();
+            const rows = document.querySelectorAll('#history-list tr');
+            
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(searchTerm) ? '' : 'none';
+            });
+        }
+
+        // Close modals on outside click
+        document.getElementById('item-modal').addEventListener('click', function(e) {
+            if (e.target === this) closeItemModal();
+        });
+        
+        document.getElementById('preview-modal').addEventListener('click', function(e) {
+            if (e.target === this) closePreview();
+        });
+    </script>
+</body>
+</html>
